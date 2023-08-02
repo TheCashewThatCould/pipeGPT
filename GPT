@@ -53,7 +53,7 @@ elif [[ "$append" -eq 1 ]]; then
 	extracted_output=$(echo "$output" | awk -v RS='(<startcode>|<endcode>)' 'NR % 2 == 0 { print $0 }')
 	echo "$extracted_output"
 	echo "writing output to file $file_name.gpt"
-	echo "$extracted_output" >> "$file_name.gpt"
+	echo "$extracted_output" >> "$file_name"
 else
 	echo "$output"
 fi
