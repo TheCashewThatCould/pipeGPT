@@ -1,0 +1,59 @@
+#!/bin/bash
+code=""
+write=0
+append=0
+context=""
+directions=""
+file_name=""
+error_message=""
+argsv=( "$@" )
+argsvlength=${#argsv[@]}
+for (( i=0; i<${argsvlength}; i++ ));
+do
+	arg="${argsv[$i]}"
+	val="${argsv[$(($i+1))]}"
+	if [[ "$arg" == "-e" ]]; then
+		directions="how do I fix this error message\n"
+		write=0
+		append=0
+	fi
+	if [[ "$arg" == "-f" ]]; then
+		code+="given this code\n"
+		code+=$(eval "cat $val")
+		file_name+="$val"
+		code+="\n"
+	fi
+	if [[ "$arg" == "-c" ]]; then
+		context+="$val"
+		context+="\n"
+	fi
+	if [[ "$arg" == "-w" ]]; then
+		directions="rewrite the code, start the code with #<startcode> and end with #<endcode>, don't type startcode and endcode anywhere except the start and end of the code and everything inbetween must be able to be compiled and run. Don't repeat the question back to me.\n"
+		write=1
+		append=0
+
+	fi
+	if [[ "arg" == "-a" ]]; then
+		directions="finish the code, start the code with #<startcode> and end with #<endcode>, don't type startcode and endcode anywhere except the start and end of the code and everything inbetween must be able to be compiled and run. Don't repeat the question back to me.\n"
+		write=0
+		append=1
+	fi
+done
+read input_data
+input_data="the code returned this:\n$input_data"
+#echo "$code$error_message$input_data" 
+output=$(echo "$code$input_data$context$directions" | python OpenAI.py)
+wait
+if [[ $write -eq 1 ]]; then
+	extracted_output=$(echo "$output" | awk -v RS='(<startcode>|<endcode>)' 'NR % 2 == 0 { print $0 }')
+	echo "$extracted_output"
+	echo "writing output to file $file_name.gpt"
+	echo "$extracted_output" > "$file_name.gpt"
+elif [[ "$append" -eq 1 ]]; then
+	extracted_output=$(echo "$output" | awk -v RS='(<startcode>|<endcode>)' 'NR % 2 == 0 { print $0 }')
+	echo "$extracted_output"
+	echo "writing output to file $file_name.gpt"
+	echo "$extracted_output" >> "$file_name.gpt"
+else
+	echo "$output"
+fi
