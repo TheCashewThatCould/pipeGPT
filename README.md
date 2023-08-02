@@ -27,3 +27,5 @@ appends output to main.py
 python main.py | GPT -e
 ```
 explains the cause of an error message
+
+these examples can be combined together with the exception of -e, -w, and -a
